@@ -1,0 +1,73 @@
+#!/bin/bash
+# a simple script that takes a pdf and turns it into a book
+
+FILE=$1
+WD=`pwd`
+SIGMAX="60"
+SIGMIN="24"
+BNAME=`basename $FILE .pdf`
+PNAME=`dirname $FILE`
+TMP="BOOKIFYTMP"
+TDIR=$BNAME$TMP
+PAGES=`pdfinfo $FILE | grep Pages | grep -o [0-9]*`
+
+#Determine size of signature (must be divisible by four
+#and we never want it bigger than SIGMAX 
+LBLANKS=$(($PAGES % $SIGMIN))
+SIGS=24
+if test $PAGES -lt $SIGMIN
+        then 
+                if test $(($PAGES % 4)) == 0
+                        then
+                                SIGS=$PAGES
+                        else
+                                SIGS=$((($PAGES / 4 + 1) * 4))
+                fi
+        else 
+                for CSIG in {$((4+$SIGMIN))..$SIGMAX.."4"}
+                do
+                        BLANKS=[$PAGES%$CSIG]
+                        if test $BLANKS -lt $LBLANKS
+                                then
+                                        LBLANKS=$BLANKS 
+                                        SIGS=$CSIG
+                        fi       
+                done
+fi
+
+#CD to path of file
+cd $PNAME
+
+#Make tmp file             
+mkdir $TDIR 
+
+# Copy file into tmpdir and move there
+cp $BNAME.pdf $TDIR
+cd $TDIR
+
+#Turn the file into a .ps file
+pdftops $BNAME.pdf $BNAME.ps
+
+# rearange the pages according to signatures
+psbook -q -s$SIGS $BNAME.ps $BNAME.book.ps
+
+# print two pages per side
+psnup -l -2 $BNAME.book.ps $BNAME.nup.ps
+
+# make it a pdf again
+ps2pdf $BNAME.nup.ps $BNAME.book.pdf
+
+# Switch back to original directory and copy file along with it
+cd .. 
+cp $TDIR/$BNAME.book.pdf ./
+
+#Remove temporary files
+rm -rf $TDIR 
+
+#Return to the working directory
+cd $WD
+
+
+#Debugging line:
+echo file=$FILE, wd=$WD, sigmax=$SIGMAX, sigmin=$SIGMIN, bname=$BNAME, pname= $PNAME, tmp=$TMP, tdir=$TDIR, pages=$PAGES, lblanks=$LBLANKS, sigs=$SIGS
+
