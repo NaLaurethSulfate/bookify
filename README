@@ -1,0 +1,30 @@
+BOOKIFY
+=========
+
+Goals 
+--------------
+The goal of this project is to make it easier and cheaper to read pdfs in hardcopy. This is most easily accomplished if you have a laser printer as the per page cost is much cheaper (~.01USD). Using this program you get very easily readable easily bound, 4 pages per sheet, making even large printing projects fairly simple. It will also soon automatically concatenate pdfs before processing them if pointed at a folder containing pdfs.
+
+Usage
+----------
+Right now the bookify script only takes one argument (a path to a pdf file) and outputs a new pdf to that folder <name>.book.pdf. This file should be printed double sided and organized into signatures (signatures just being a group of pages folded in half, a book is just made up of a group of such signatures) according to what the script did (it should tell you how big the signature is, and for now just count). 
+
+The pagenumber script is similar and just takes a path to a pdf and puts a numbered pdf in the same folder. 
+
+The state of things now is that you should run pagenumber on your pdf, and then bookify the resulting file, to see the full effect. If your document is less than 40 pages you should just be able to print double sided, and with the first page on top fold in half and staple or sew the pages in the crease and you have a simple little booklet.
+
+Should be great for zines, LaTeX enthusiasts, those reading numerous scientific papers and downloading books (authors like Cory Doctrow let you do this for free as long as you are non-commercial about it, but I am not a lawer and this is not legal advice).
+
+
+
+Licence and Miscellany 
+--------------------------
+This project is one of my first attempts at a real bash script, so be gentle but any comments or suggestions are welcome. All code is public domain: you can do anything with it that you want though I would rather you didn't call it "yours", give credit where credit is due. I wouldn't have been able to do this without the following resources (especially the page numbers bit):
+
+http://www.hotscripts.com/forums/php/23533-how-now-get-number-pages-one-document-pdf-2.html
+for figuring out how many pages a pdf has (even though I just use pdfinfo)
+
+http://forums.debian.net/viewtopic.php?t=30598
+for adding page numbers to a pdf
+
+
