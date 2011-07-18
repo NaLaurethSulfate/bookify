@@ -1,0 +1,52 @@
+#!/bin/bash
+
+TMP="PAGENUMBERTMPFILE"
+WD=`pwd`
+FILE=`basename $1 .pdf`
+PNAME=`dirname $1`
+PAGES=`pdfinfo $1 | grep Pages | grep -o [0-9]*`
+
+#Debugging
+echo file=$FILE, wd=$WD, tmp=$TMP, pages=$PAGES, TEMPLATE=$TEMPLATE, pname=$PNAME
+
+#Change to the directory of the pdf
+cd $PNAME
+#Make a temporary directory
+mkdir $TMP
+#Copy the file to the temporary directory and cd there
+cp $FILE.pdf $TMP
+cd $TMP
+
+#Output the latex template to a file with the correct number of pages
+printf "\\documentclass[12pt,a4paper]{article}\n\\\usepackage{multido} \n\\\usepackage[hmargin=.8cm,vmargin=1.5cm,paperheight=8.5in,paperwidth=5.5in]{geometry} \n\\\begin{document} \n\\multido{}{%s}{\\\vphantom{x}\\\newpage} \n\\\end{document}\n" "$PAGES" > $TMP.tex
+
+#Compile the latex document
+pdflatex $TMP 
+
+#Burst the file into individual numbered pages
+pdftk $FILE.pdf burst output $FILE%05d.pdf
+#Burst the pgnumbers file into individual pages
+pdftk $TMP.pdf burst output $TMP%05d.pdf
+
+#For i in page documents combine them
+for i in $(seq -f %05g 1 $PAGES)
+do 
+        pdftk $FILE$i.pdf background $TMP$i.pdf output $FILE.comb.$i.pdf
+done
+
+#Combine back together all the numbered pages
+pdftk $FILE.comb.?????.pdf output $FILE.numbered.pdf
+
+#Switch back to files directory and pull up numbered document
+cd ..
+cp $TMP/$FILE.numbered.pdf ./
+
+#
+##rm -rf $TMP
+###
+####gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE \
+####        -dQUIET -dBATCH -sOutputFile=new-s.pdf new.pdf
+###
+###
+####Debugging
+####echo file=$FILE, wd=$WD, tmp=$TMP, pages=$PAGES, TEMPLATE=$TEMPLATE
